@@ -5,6 +5,9 @@ const { signToken } = require('../utils/auth')
 const resolvers = {
     Query: {
         getSingleUser: async (parent, { _id, username }, contextValue, info) => {
+
+            // TODO: Make sure user is authenticated
+
             const foundUser = await User.findOne({
                 $or: [{ _id }, { username }],
               });
@@ -57,11 +60,37 @@ const resolvers = {
             const token = signToken(user);
             return { token, user };
         },
-        saveBook: async (parent, args, contextValue, info) => {
-            
+        saveBook: async (parent, { _id, book }, contextValue, info) => {
+            // TODO: Make sure user is authenticated
+            try {
+                const updatedUser = await User.findOneAndUpdate(
+                  { _id },
+                  { $addToSet: { savedBooks: book } },
+                  { new: true, runValidators: true }
+                );
+                return updatedUser
+
+              } catch (err) {
+                console.log(err);
+                throw new GraphQLError('Error saving book')
+              }
         },
-        deleteBook: async (parent, args, contextValue, info) => {
-            
+        deleteBook: async (parent, { _id, bookId }, contextValue, info) => {
+            // TODO: Make sure user is authenticated
+            const updatedUser = await User.findOneAndUpdate(
+                { _id },
+                { $pull: { savedBooks: { bookId: bookId } } },
+                { new: true }
+              );
+
+              if (!updatedUser) {
+                throw new GraphQLError('Error deleting book', {
+                    extensions: {
+                        code: 'USER_NOT_FOUND'
+                    }
+                })
+              }
+              return updatedUser
         }
     }
 }
