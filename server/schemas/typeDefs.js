@@ -9,7 +9,6 @@ const typeDefs = `
     }
 
     input BookInput {
-        _id: ID
         authors: [String]
         description: String
         bookId: String
