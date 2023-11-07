@@ -4,6 +4,7 @@ const db = require('./config/connection');
 const { typeDefs, resolvers } = require('./schemas')
 const { ApolloServer } = require('@apollo/server')
 const { expressMiddleware } = require('@apollo/server/express4')
+const { authMiddleware } = require('./utils/auth')
 
 
 const app = express();
@@ -29,7 +30,7 @@ db.once('open', async () => {
   await apolloServer.start()
 
   app.use('/graphql', expressMiddleware(apolloServer, {
-    // context: async ({ req }) => console.log(req.headers.token)
+    context: authMiddleware
   }))
 
   console.log(`Graphql found at http://localhost:${PORT}/graphql`)

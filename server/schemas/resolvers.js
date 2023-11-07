@@ -1,12 +1,13 @@
 const { User } = require('../models')
 const { GraphQLError } = require('graphql')
-const { signToken } = require('../utils/auth')
+const { signToken, authError } = require('../utils/auth')
 
 const resolvers = {
     Query: {
         getSingleUser: async (parent, { _id, username }, contextValue, info) => {
-
-            // TODO: Make sure user is authenticated
+            if (!contextValue.user) {
+                authError()
+            }
 
             const foundUser = await User.findOne({
                 $or: [{ _id }, { username }],
@@ -61,7 +62,9 @@ const resolvers = {
             return { token, user };
         },
         saveBook: async (parent, { _id, book }, contextValue, info) => {
-            // TODO: Make sure user is authenticated
+            if (!contextValue.user) {
+                authError()
+            }
             try {
                 const updatedUser = await User.findOneAndUpdate(
                   { _id },
@@ -76,7 +79,9 @@ const resolvers = {
               }
         },
         deleteBook: async (parent, { _id, bookId }, contextValue, info) => {
-            // TODO: Make sure user is authenticated
+            if (!contextValue.user) {
+                authError()
+            }
             const updatedUser = await User.findOneAndUpdate(
                 { _id },
                 { $pull: { savedBooks: { bookId: bookId } } },
